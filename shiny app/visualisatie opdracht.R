@@ -2,6 +2,14 @@ library('shiny')
 library('ggplot2')
 library('plyr')
 
+#get the data
+library(readr)
+ign <- read_csv("ign.csv")
+
+#remove outlier from 1970
+ign<-ign[!(ign$release_year==1970),]
+
+
 ui <- fluidPage(
   titlePanel("popularity of games genres in time"),
   sidebarLayout(
@@ -33,18 +41,26 @@ server <- function(input, output) {
   })
   
   
-  output$genrePlot <- reactivePlot(function(){
+  output$genrePlot <- renderPlot({
     year <- input$year
     plotdata = ign[ign$release_year == year,]
+    title = paste("Popularity of games genres in", input$year, sep = " ")
     
     #get frequency
     frequency <- count(plotdata, 'genre')
-    p <- ggplot(frequency, aes(x = genre, 
-                               y=freq)) + 
-      geom_bar(stat = "identity") + 
-      coord_flip()
-    
-    print(p)
+    p <- ggplot(frequency, aes(x = genre, y=freq)) + 
+      geom_bar(stat = "identity", fill = "#FF6666") + 
+      coord_flip() +
+      labs(y = "Frequency", x = "Genre") +
+      ggtitle(title) +
+      scale_fill_brewer(palette="Set1") +
+      theme(
+      plot.title = element_text(color="red", size=14, face="bold"),
+      axis.title.x = element_text(color="black", size=14, face="bold"),
+      axis.title.y = element_text(color="black", size=14, face="bold")
+      )
+      
+    p
   })
   
   
